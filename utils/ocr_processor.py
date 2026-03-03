@@ -25,14 +25,13 @@ class AzureDocumentIntelligenceOCR:
 
         # Load from Streamlit secrets first (Cloud safe)
         self.endpoint = st.secrets.get("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT") or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
-
         self.key = st.secrets.get("AZURE_DOCUMENT_INTELLIGENCE_KEY") or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
 
         self.client = None
 
+        # ❌ REMOVED st.error() HERE (this caused set_page_config crash)
         if not self.endpoint or not self.key:
             logger.error("Azure credentials not found")
-            st.error("Azure Document Intelligence credentials not configured.")
             return
 
         try:
@@ -43,7 +42,8 @@ class AzureDocumentIntelligenceOCR:
             logger.info("Azure client initialized successfully")
         except Exception as e:
             logger.error(f"Azure initialization error: {e}")
-            st.error("Failed to initialize Azure service.")
+            # ❌ REMOVED st.error() HERE
+
 
     def extract_expiry_date(self, image_file) -> Optional[Dict[str, Any]]:
         if not self.client:
@@ -101,6 +101,7 @@ class AzureDocumentIntelligenceOCR:
             st.error(f"Error during OCR processing: {str(e)}")
             return None
 
+
     def _extract_text_from_result(self, result) -> str:
         extracted_text = ""
 
@@ -111,6 +112,7 @@ class AzureDocumentIntelligenceOCR:
                         extracted_text += line.content + "\n"
 
         return extracted_text
+
 
     def _parse_product_information(self, text: str) -> Dict[str, Any]:
         result = {
@@ -150,6 +152,7 @@ class AzureDocumentIntelligenceOCR:
 
         return result
 
+
     def _extract_product_name(self, text: str) -> Optional[str]:
         lines = text.split('\n')
         potential_names = []
@@ -167,6 +170,7 @@ class AzureDocumentIntelligenceOCR:
             return max(potential_names, key=lambda x: x[1])[0]
         return None
 
+
     def _extract_manufacturer(self, text: str) -> Optional[str]:
         brand_patterns = [
             r'(?:mfg|manufactured\s+by|brand|company)\s*:?\s*([a-zA-Z\s&]+)',
@@ -180,6 +184,7 @@ class AzureDocumentIntelligenceOCR:
                 return match.group(1).strip()
         return None
 
+
     def _extract_batch_number(self, text: str) -> Optional[str]:
         batch_patterns = [
             r'(?:batch|lot|b\.no|lot\s+no|batch\s+no)\s*:?\s*([a-zA-Z0-9]+)',
@@ -192,6 +197,7 @@ class AzureDocumentIntelligenceOCR:
             if match:
                 return match.group(1).strip()
         return None
+
 
     def _parse_date_string(self, date_str: str) -> Optional[datetime]:
         date_formats = [
@@ -229,7 +235,3 @@ ocr_service = AzureDocumentIntelligenceOCR()
 
 def extract_expiry_date(image_file):
     return ocr_service.extract_expiry_date(image_file)
-
-
-def extract_text_only(image_file):
-    return ocr_service.extract_text_only(image_file)
