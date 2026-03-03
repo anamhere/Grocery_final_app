@@ -231,6 +231,44 @@ class AzureDocumentIntelligenceOCR:
 
 
 ocr_service = AzureDocumentIntelligenceOCR()
+# ===============================
+# REQUIRED FUNCTIONS FOR IMPORT
+# ===============================
+
+def process_image_ocr(image_path, user_email):
+    """Process single image with Azure OCR"""
+    with open(image_path, "rb") as image_file:
+        result = ocr_service.extract_expiry_date(image_file)
+        if result:
+            return (
+                result.get("product_name") or "Unknown",
+                result.get("expiry_date") or "Unknown",
+            )
+        return "Unknown", "Unknown"
+
+
+def process_dual_image_ocr(front_image_path, back_image_path, user_email):
+    """Process dual images and combine results"""
+    front_product, front_expiry = process_image_ocr(front_image_path, user_email)
+    back_product, back_expiry = process_image_ocr(back_image_path, user_email)
+
+    product = front_product if front_product != "Unknown" else back_product
+    expiry = front_expiry if front_expiry != "Unknown" else back_expiry
+
+    return product, expiry
+
+
+def apply_hitl_feedback(user_email, image_path, pred_product, pred_expiry, user_product, user_expiry):
+    """Store feedback into DB"""
+    upsert_ocr_feedback(
+        image_path,
+        user_email,
+        pred_product,
+        pred_expiry,
+        user_product,
+        user_expiry,
+    )
+    logger.info(f"Feedback logged for user: {user_email}")
 
 
 def extract_expiry_date(image_file):
