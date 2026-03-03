@@ -1,14 +1,20 @@
 import streamlit as st
+
+# MUST be the FIRST Streamlit command
+st.set_page_config(
+    page_title="🌟 Smart AI Expiry Tracker",
+    page_icon="🛍",
+    layout="wide"
+)
+
+# Now import everything else AFTER page config
 from datetime import datetime
 from components.auth_components import render_auth_section
 from components.product_manager import render_products_tab, render_add_item_tab, render_recycle_bin_tab
 from components.insights_ui import render_insights_tab, render_alerts_tab
 from utils.database import get_user_products
 from utils.helpers import get_status_counts, apply_theme
-from config.theme import setup_page_config, get_daily_content
-
-# Page config
-setup_page_config()
+from config.theme import get_daily_content
 
 # Initialize session state
 if "user_email" not in st.session_state:
@@ -35,7 +41,17 @@ def render_dashboard():
             st.rerun()
     
     # Title and subtitle
-    st.markdown("<h1>🛍 Smart AI Grocery Expiry Tracker</h1>", unsafe_allow_html=True)
+    st.markdown(
+    "<h1 style='text-align:center;'>🛍 Smart AI Grocery Expiry Tracker</h1>",
+    unsafe_allow_html=True
+)
+
+    st.markdown(
+    "<div style='text-align:center; font-size:14px; opacity:0.7; margin-bottom:15px;'>"
+    "Created by Arman Warraich & Anam"
+    "</div>",
+    unsafe_allow_html=True
+)
     st.markdown("<div class='login-subheader'>Track today, save tomorrow. Make AI your pantry pal. 🧠</div>", unsafe_allow_html=True)
     
     # Get user products and metrics
